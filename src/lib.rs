@@ -1,3 +1,23 @@
+//! HashMap/Set<Pin<Arc<T>>>` based fully safety tree collection
+//! # Examples
+//! ```
+//! let pt = PinTree::<i32>::new();
+//! 
+//! let a = pt.node(1);
+//! let b = pt.node(2);
+//! let c = pt.node(2);
+//! 
+//! pt.set_parent(b, a);
+//! pt.set_parent(c, a);
+//! //    a
+//! //  ↙ ↘
+//! // b    c
+//! 
+//! assert_eq!(pt.is_parent(b, a), true);
+//! assert_eq!(pt.is_child(c, a), true);
+//! ```
+//! See [PinTree](struct.PinTree.html)
+
 use std::collections::hash_set::Iter;
 use std::collections::{HashMap, HashSet};
 use std::convert::AsRef;
@@ -18,6 +38,7 @@ where
     }
 }
 
+/// `HashMap/Set<Pin<Arc<T>>>` based fully safety tree collection
 pub struct PinTree<T> {
     nodes: HashSet<PinNode<T>>,
     parents: HashMap<PinNode<T>, PinNode<T>>,
@@ -25,6 +46,7 @@ pub struct PinTree<T> {
     _empty_node_set: HashSet<PinNode<T>>,
 }
 impl<T> PinTree<T> {
+    /// Create a PinTree
     pub fn new() -> Self {
         Self {
             nodes: HashSet::new(),
@@ -33,11 +55,13 @@ impl<T> PinTree<T> {
             _empty_node_set: HashSet::new(),
         }
     }
+    /// Create a PinNode and add it to PinTree
     pub fn node(&mut self, v: T) -> &PinNode<T> {
         let n: PinNode<T> = PinNode::new(v);
         self.nodes.insert(n.clone());
         self.nodes.get(&n).unwrap()
     }
+    /// add a PinNode to PinTree
     pub fn node_from(&mut self, node: PinNode<T>) -> bool {
         self.nodes.insert(node)
     }
@@ -48,7 +72,11 @@ impl<T> PinTree<T> {
             false
         }
     }
+    /// Set parent-child relationship   
+    /// If nodes are not in PinTree, they will be added
     pub fn set_parent(&mut self, this: &PinNode<T>, parent: &PinNode<T>) -> bool {
+        self.node_from(this.clone());
+        self.node_from(parent.clone());
         if self.is_parent(this, parent) {
             return false;
         }
@@ -61,6 +89,7 @@ impl<T> PinTree<T> {
         childs.insert(this.clone());
         true
     }
+    /// Unset parent-child relationship   
     pub fn unset_parent(&mut self, this: &PinNode<T>, parent: &PinNode<T>) -> bool {
         if self.is_parent(this, parent) {
             return false;
@@ -69,27 +98,32 @@ impl<T> PinTree<T> {
         self.remove_child(parent, this);
         true
     }
+    /// Check if it's parent
     pub fn is_parent(&self, this: &PinNode<T>, parent: &PinNode<T>) -> bool {
         self.parents
             .get(&this)
             .map(|v| *v == *parent)
             .unwrap_or(false)
     }
+    /// Check if it's child
     pub fn is_child(&self, this: &PinNode<T>, parent: &PinNode<T>) -> bool {
         self.childs
             .get(parent)
             .map(|childs| childs.contains(this))
             .unwrap_or(false)
     }
+    /// Get the parent of node
     pub fn get_parent(&self, this: &PinNode<T>) -> Option<&PinNode<T>> {
         self.parents.get(&this)
     }
+    /// Get the childs of node
     pub fn get_childs(&self, parent: &PinNode<T>) -> Iter<PinNode<T>> {
         self.childs
             .get(parent)
             .map(|childs| childs.iter())
             .unwrap_or(self._empty_node_set.iter())
     }
+    /// Remove node from PinTree
     pub fn remove(&mut self, this: &PinNode<T>) -> bool {
         if !self.nodes.contains(this) {
             return false;
@@ -103,8 +137,16 @@ impl<T> PinTree<T> {
     }
 }
 
+/// PinNode is a PinArc Box  
+/// Wrap of Pin<Arc<T>>
 pub struct PinNode<T> {
     inner: Pin<Arc<T>>,
+}
+impl<T> PinNode<T> {
+    /// Create a PinNode
+    pub fn new(v: T) -> Self {
+        PinNode { inner: Arc::pin(v) }
+    }
 }
 impl<T> Clone for PinNode<T> {
     fn clone(&self) -> Self {
@@ -127,11 +169,6 @@ impl<T> PartialEq for PinNode<T> {
     }
 }
 impl<T> Eq for PinNode<T> {}
-impl<T> PinNode<T> {
-    pub fn new(v: T) -> Self {
-        PinNode { inner: Arc::pin(v) }
-    }
-}
 impl<T> Deref for PinNode<T> {
     type Target = T;
 
