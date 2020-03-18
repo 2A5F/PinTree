@@ -29,3 +29,12 @@ pt.set_parent(c, b);
 pt.set_parent(a, a);
 // a ⟲
 ```
+```rust
+let mut pt = PinTree::<Mutex<i32>>::new();
+
+let a = pt.node(Mutex::new(1));
+let mut x = a.lock().unwrap();
+assert_eq!(*x, 1);
+*x = 2;
+assert_eq!(*x, 2);
+```

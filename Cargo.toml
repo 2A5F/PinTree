@@ -1,6 +1,6 @@
 [package]
 name = "pin_tree"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Package <Aditrc@outlook.com>"]
 edition = "2018"
 description = "HashMap/Set<Pin<Arc<T>>> based fully safety tree collection"

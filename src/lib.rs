@@ -28,6 +28,15 @@
 //! pt.set_parent(a, a);
 //! // a ⟲
 //! ```
+//! ```
+//! let mut pt = PinTree::<Mutex<i32>>::new();
+//! 
+//! let a = pt.node(Mutex::new(1));
+//! let mut x = a.lock().unwrap();
+//! assert_eq!(*x, 1);
+//! *x = 2;
+//! assert_eq!(*x, 2);
+//! ```
 //! See [PinTree](struct.PinTree.html)
 
 use std::collections::hash_set::Iter;
@@ -300,5 +309,30 @@ mod tests {
 
         pt.remove(a);
         assert_eq!(pt.is_parent(b, a), false);
+    }
+
+    #[test]
+    fn test_check_get() {
+        let mut pt = PinTree::<i32>::new();
+
+        let a = &pt.node(1);
+        let b = &pt.node(2);
+
+        pt.set_parent(b, a);
+
+        assert_eq!(pt.get_parent(b).unwrap(), a);
+        assert_eq!(pt.get_childs(a).collect::<Vec<_>>()[0], b);
+    }
+
+    use std::sync::Mutex;
+    #[test]
+    fn test_mutex() {
+        let mut pt = PinTree::<Mutex<i32>>::new();
+
+        let a = pt.node(Mutex::new(1));
+        let mut x = a.lock().unwrap();
+        assert_eq!(*x, 1);
+        *x = 2;
+        assert_eq!(*x, 2);
     }
 }
