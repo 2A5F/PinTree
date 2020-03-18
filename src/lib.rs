@@ -131,3 +131,10 @@ impl<T> PinNode<T> {
         PinNode { inner: Arc::pin(v) }
     }
 }
+impl<T> Deref for PinNode<T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner.deref()
+    }
+}
