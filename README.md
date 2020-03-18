@@ -1,2 +1,2 @@
 # PinTree
-`HashMap/Set&lt;Pin&lt;Arc&lt;T>>>` based fully safety tree collection
+`HashMap/Set<Pin<Arc<T>>>` based fully safety tree collection
