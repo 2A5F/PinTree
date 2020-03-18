@@ -1,5 +1,6 @@
 use std::collections::hash_set::Iter;
 use std::collections::{HashMap, HashSet};
+use std::convert::AsRef;
 use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::pin::Pin;
@@ -135,6 +136,11 @@ impl<T> Deref for PinNode<T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &self.inner.deref()
+        self.inner.deref()
+    }
+}
+impl<T> AsRef<T> for PinNode<T> {
+    fn as_ref(&self) -> &T {
+        self.deref()
     }
 }
